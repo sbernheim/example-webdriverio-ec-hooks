@@ -1,3 +1,13 @@
+const { Eyes } = require('@applitools/eyes-webdriverio');
+
+let ecServiceVal
+
+let useExecutionCloud = process.env.APPLITOOLS_EXECUTION_CLOUD
+let services = ['chromedriver']
+if (useExecutionCloud == 'true') {
+  services = []
+}
+
 exports.config = {
     //
     // ====================
@@ -57,11 +67,11 @@ exports.config = {
         // grid with only 5 firefox instances available you can make sure that not more than
         // 5 instances get started at a time.
         maxInstances: 5,
-        //
         browserName: 'chrome',
         acceptInsecureCerts: true,
         'goog:chromeOptions': {
-            args: ['--headless', '--disable-gpu']
+            args: ['--disable-gpu', '--disable-infobars']
+            //args: ['--headless', '--disable-gpu']
         }
         // If outputDir is provided WebdriverIO can capture driver session logs
         // it is possible to configure which logTypes to include/exclude.
@@ -75,7 +85,7 @@ exports.config = {
     // Define all options that are relevant for the WebdriverIO instance here
     //
     // Level of logging verbosity: trace | debug | info | warn | error | silent
-    logLevel: 'error',
+    logLevel: 'warn',
     //
     // Set specific log levels per logger
     // loggers:
@@ -115,7 +125,8 @@ exports.config = {
     // Services take over a specific job you don't want to take care of. They enhance
     // your test setup with almost no effort. Unlike plugins, they don't add new
     // commands. Instead, they hook themselves up into the test process.
-    services: ['chromedriver'],
+    //services: ['chromedriver'],
+    services: services,
     
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
@@ -161,8 +172,13 @@ exports.config = {
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      */
-    // onPrepare: function (config, capabilities) {
-    // },
+    /*onPrepare: function (config, capabilities) {
+      console.log('OnPrepare Hook -----')
+      console.log('hostname: ' + config.hostname)
+      console.log('protocol: ' + config.protocol)
+      console.log('port    : ' + config.port)
+      console.log('OnPrepare Hook -----')
+    },*/
     /**
      * Gets executed before a worker process is spawned and can be used to initialise specific service
      * for that worker as well as modify runtime environments in an async fashion.
@@ -191,8 +207,31 @@ exports.config = {
      * @param {Array.<String>} specs List of spec file paths that are to be run
      * @param {String} cid worker id (e.g. 0-0)
      */
-    // beforeSession: function (config, capabilities, specs, cid) {
-    // },
+    beforeSession: async function (config, capabilities, specs, cid) {
+      console.log('beforeSession Hook -----')
+      if (useExecutionCloud) {
+	      console.log("~~~~~ Running tests on Applitools Self-Healing Execution Cloud! ~~~~~")
+        ecServiceVal = await Eyes.getExecutionCloudUrl()
+        console.log('Execution Cloud Service URL: ' + ecServiceVal)
+        //const executionCloudUrl = new URL(await Eyes.getExecutionCloudUrl());
+        const executionCloudUrl = new URL(ecServiceVal);
+        const protocol_val = executionCloudUrl.protocol.substring(0, executionCloudUrl.protocol.length - 1);
+        //config.logLevel = 'trace'
+        config.services = []
+        config.hostname = executionCloudUrl.hostname
+        config.protocol = protocol_val
+        config.port = Number(executionCloudUrl.port)
+        //capabilities = [{ browserName: 'chrome' }]
+        console.log('hostname: ' + config.hostname)
+        console.log('protocol: ' + config.protocol)
+        console.log('port    : ' + config.port)
+        console.log('baseUrl : ' + config.baseUrl)
+        console.log('logLevel: ' + config.logLevel)
+      } else {
+	      console.log("~~~~~ Running tests in local browser! ~~~~~")
+      }
+      console.log('beforeSession Hook -----')
+    },
     /**
      * Gets executed before test execution begins. At this point you can access to all global
      * variables like `browser`. It is the perfect place to define custom commands.
@@ -200,8 +239,13 @@ exports.config = {
      * @param {Array.<String>} specs        List of spec file paths that are to be run
      * @param {Object}         browser      instance of created browser/device session
      */
-    // before: function (capabilities, specs) {
-    // },
+    before: async function (capabilities, specs, browser) {
+      console.log('before Hook -----')
+      const windowSize = await browser.getWindowSize();
+      console.log(`Browser Window Size : height %s x width %s`, windowSize.height, windowSize.width);
+      //console.log(config)
+      console.log('before Hook -----')
+    },
     /**
      * Runs before a WebdriverIO command gets executed.
      * @param {String} commandName hook command name
@@ -276,8 +320,16 @@ exports.config = {
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {Array.<String>} specs List of spec file paths that ran
      */
-    // afterSession: function (config, capabilities, specs) {
-    // },
+    afterSession: function (config, capabilities, specs) {
+      console.log('afterSession Hook -----')
+      console.log('Execution Cloud Service URL: ' + ecServiceVal)
+      console.log('hostname: ' + config.hostname)
+      console.log('protocol: ' + config.protocol)
+      console.log('port    : ' + config.port)
+      console.log('baseUrl : ' + config.baseUrl)
+      console.log('logLevel: ' + config.logLevel)
+      console.log('afterSession Hook -----')
+    },
     /**
      * Gets executed after all workers got shut down and the process is about to exit. An error
      * thrown in the onComplete hook will result in the test run failing.

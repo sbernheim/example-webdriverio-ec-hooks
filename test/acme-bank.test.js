@@ -22,7 +22,7 @@ describe('ACME Bank', function () {
   // Settings to control how tests are run.
   // These could be set by environment variables or other input mechanisms.
   // They are hard-coded here to keep the example project simple.
-  const USE_ULTRAFAST_GRID = true;
+  const USE_ULTRAFAST_GRID = false;
   const USE_EXECUTION_CLOUD = false;
   
   // Test control inputs to read once and share for all tests
@@ -70,7 +70,7 @@ describe('ACME Bank', function () {
     // Set the Applitools API key so test results are uploaded to your account.
     // If you don't explicitly set the API key with this call,
     // then the SDK will automatically read the `APPLITOOLS_API_KEY` environment variable to fetch it.
-    config.setApiKey(applitoolsApiKey);
+    //config.setApiKey(applitoolsApiKey);
 
     // Set the batch for the config.
     config.setBatch(batch);
@@ -101,7 +101,7 @@ describe('ACME Bank', function () {
     eyes.setConfiguration(config);
 
     // Set up Execution Cloud if it will be used.
-    if (USE_EXECUTION_CLOUD) {
+    /*if (USE_EXECUTION_CLOUD) {
       const executionCloudUrl = new URL(await Eyes.getExecutionCloudUrl());
       const protocol_val = executionCloudUrl.protocol.substring(0, executionCloudUrl.protocol.length - 1);
       browser = await remote({
@@ -113,11 +113,12 @@ describe('ACME Bank', function () {
           browserName: 'chrome',
         }
       });
-    }
+    }*/
 
     // Open Eyes to start visual testing.
     // It is a recommended practice to set all four inputs:
-    browser = await eyes.open(
+    //browser = await eyes.open(
+    await eyes.open(
       
       // WebDriver object to "watch".
       browser,
